@@ -1,21 +1,42 @@
-# Python script for generating netCDF file for OPG3_Argo
+# Python script for generating netCDF file for OP-PL ArRef
 import netCDF4 as ncdf
 import datetime as dt
 import numpy as np
-dir_work="../../REANALYSIS/OP_G3Argo/"
+import os
+
+dir_work="../../../OP-RA"
 dt_start=dt.datetime(2020,1,1,0,0,0) # Start date of output
 dt_end=dt.datetime(2020,1,31,0,0,0)  # End date of output (for an initial test...terminate at 31/1/2020)
-dt_end=dt.datetime(2020,12,31,0,0,0)  # End date of output
+#dt_end=dt.datetime(2020,12,31,0,0,0)  # End date of output
+institution_name="JAMSTEC"
+contact_name="skido@jamstec.go.jp"
 system_name="SAMPLE" # Name of your system
 exp_name="CNTL"  # Name of experiment
-dir_argo="../../../ARGOINFO/" # Path to files with "ArRefYYYYMM"
+version_name="0"
+dir_argo="../../../Argo_Info/" # Path to files with "ArRefYYYYMM"
 
 # You don't need to edit following part
-type_name="daily";
-fflag_tail="_OPG3ARGO_"+exp_name+".nc"
-missing=-9.99e33
-ref_dt=dt.datetime(1900,1,1,0,0,0);time_units="days since "+str(ref_dt)
+dt_now=dt.datetime.now(dt.timezone.utc)
+creation_date=dt_now.strftime('%Y-%m-%d %H:%M:%S utc')
+project_name="SynObs Flagship OSE"
+group_name="OP-PL"
+plat_name="Reference Argo"
+plat_short="ArRef"
+time_interp="daily average value"
+fflag_tail="_"+system_name+"_"+exp_name+".nc"
+
+missing=-9.99e7
+ref_dt=dt.datetime(1950,1,1,0,0,0); time_units="Days since "+str(ref_dt)+" utc"
 lev_out=[1.0, 5.0, 10.0, 15.0, 20.0, 25.0, 30.0, 35.0, 40.0, 45.0, 50.0, 60.0, 70.0, 80.0, 90.0, 100.0, 120.0, 140.0, 160.0, 180.0, 200.0, 220.0, 240.0, 270.0, 300.0, 330.0, 360.0, 400.0, 450.0, 500.0, 550.0, 600.0, 700.0, 800.0, 900.0, 1000.0, 1100.0, 1200.0, 1350.0, 1500.0, 1750.0, 2000.0]
+
+lonname="longitude"
+latname="latitude"
+levname="depth"
+timename="juld"
+numname="numobs"
+
+dir_out=dir_work+"/"+exp_name+"/"+group_name+"/"+plat_short
+os.makedirs(dir_out,exist_ok=True)
 
 start_year=dt_start.year;start_month=dt_start.month
 end_year=dt_end.year;end_month=dt_end.month
@@ -31,10 +52,11 @@ for iy in range(start_year,end_year+1):
     else:
         im2=12+1
     for im in range(im1,im2):
-        fnames_Argo.append(dir_argo+"ArRef"+str(iy*100+im))
-        fnames_out.append(dir_work+"TSRef_"+str(iy*100+im)+fflag_tail)
-        fnames_Argo.append(dir_argo+"ArAsm"+str(iy*100+im))
-        fnames_out.append(dir_work+"TSAsm_"+str(iy*100+im)+fflag_tail)
+        yyyymm=iy*100+im
+        fname_out=dir_out+"/"+group_name+"_"+plat_short+"_" \
+                   +str(yyyymm)+fflag_tail
+        fnames_Argo.append(dir_argo+plat_short+str(yyyymm))
+        fnames_out.append(fname_out)
 
 nfile=len(fnames_Argo)
 
@@ -67,53 +89,58 @@ for ifile in range(0,nfile):
         OBS_yyyymm.append(dt_tmp.year*100+dt_tmp.month)
     # Create netCDF file
     nprof=len(lon_out)
-    levname="lev";numname="num"
     nc_out=ncdf.Dataset(fnames_out[ifile],"w")
     nc_out.createDimension(levname,len(lev_out))
     nc_out.createDimension(numname,len(OBS_number))
-    nc_out.createVariable(levname,"float",[levname])
+    nc_out.createVariable(levname,"float32",[levname])
+    nc_out.variables[levname].long_name="Depths"
     nc_out.variables[levname].units="m"
     nc_out.variables[levname][:]=lev_out[:]
-    nc_out.createVariable("T","float",[numname,levname])
-    nc_out.createVariable("S","float",[numname,levname])
-    nc_out.createVariable("time","float",[numname])
-    nc_out.createVariable("lon","float",[numname])
-    nc_out.createVariable("lat","float",[numname])
+    nc_out.createVariable("T","float32",[numname,levname])
+    nc_out.createVariable("S","float32",[numname,levname])
+    nc_out.createVariable(timename,"double",[numname])
+    nc_out.createVariable(lonname,"float32",[numname])
+    nc_out.createVariable(latname,"float32",[numname])
     WMO_number=np.asarray(WMO_number)
     nc_out.createVariable("WMO_number","str",[numname])
-    nc_out.createVariable("obsnum","int",[numname])
-    nc_out.createVariable("obsymnum","int",[numname])
+    nc_out.createVariable("OBS_number","int",[numname])
+    nc_out.createVariable("OBS_ym","int",[numname])
     time_out_day=[(i-ref_dt).days+(i-ref_dt).seconds/(60.0*60.0*24.0) for i in time_out]
-    nc_out.variables["lon"].long_name="longitude"
-    nc_out.variables["lat"].long_name="latitude"
-    nc_out.variables["time"].long_name="time"
+    nc_out.variables[lonname].long_name="Longitude"
+    nc_out.variables[latname].long_name="latitude"
+    nc_out.variables[timename].long_name="time"
     nc_out.variables["T"].long_name="Potential temperature"
     nc_out.variables["S"].long_name="Salinity"
     nc_out.variables["WMO_number"].long_name="WMO number"
-    nc_out.variables["obsnum"].long_name="Observation number"
-    nc_out.variables["obsymnum"].long_name="Observation YYYYMM"
+    nc_out.variables["OBS_number"].long_name="Observation number"
+    nc_out.variables["OBS_ym"].long_name="Observation YYYYMM"
 
-    nc_out.variables["lon"].units="degrees_east"
-    nc_out.variables["lat"].units="degrees_north"
-    nc_out.variables[levname].units="m"
-    nc_out.variables["time"].units=time_units
+    nc_out.variables[lonname].units="degrees_east"
+    nc_out.variables[latname].units="degrees_north"
+    nc_out.variables[timename].units=time_units
     nc_out.variables["T"].units="degrees celsius"
     nc_out.variables["S"].units="psu"
 
-    nc_out.variables["lon"][:]=np.asarray(lon_out)
-    nc_out.variables["lat"][:]=np.asarray(lat_out)
-    nc_out.variables["time"][:]=np.asarray(time_out_day)
-    nc_out.variables["obsnum"][:]=np.asarray(OBS_number)
-    nc_out.variables["obsymnum"][:]=np.asarray(OBS_yyyymm)
+    nc_out.variables[lonname][:]=np.asarray(lon_out)
+    nc_out.variables[latname][:]=np.asarray(lat_out)
+    nc_out.variables[timename][:]=np.asarray(time_out_day)
+    nc_out.variables["OBS_number"][:]=np.asarray(OBS_number)
+    nc_out.variables["OBS_ym"][:]=np.asarray(OBS_yyyymm)
     nc_out.variables["WMO_number"][:]=np.asarray(WMO_number)
-    nc_out.variables["T"].long_name="Potential temperature"
-    nc_out.variables["S"].long_name="Salinity"
     nc_out.variables["T"].missing_value=missing
     nc_out.variables["S"].missing_value=missing
     nc_out.variables["T"][:]=np.ones((len(OBS_number),len(lev_out)))*missing
     nc_out.variables["S"][:]=np.ones((len(OBS_number),len(lev_out)))*missing
-    nc_out.system_name=system_name
-    nc_out.exp_name=exp_name
-    nc_out.data_type=type_name
-    nc_out.close()
  
+    title_name=project_name+" "+group_name+" "+plat_name+" Data"
+    nc_out.title=title_name
+    nc_out.institution=institution_name
+    nc_out.contact=contact_name
+    nc_out.system=system_name
+    nc_out.exp_name=exp_name
+    nc_out.version=version_name
+    nc_out.time_interp=time_interp
+    nc_out.creation_date=creation_date
+
+    nc_out.close()
+
