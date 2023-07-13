@@ -14,6 +14,7 @@ contact_name="yfujii@mri-jma.go.jp"
 system_name="SAMPLE"
 exp_name="CNTL"
 version_name="0"
+dir_argo="../../../Argo_Info/" # Path to files with "ArRefYYYYMM"
 
 # You don't need to edit following part
 dt_now=dt.datetime.now(dt.timezone.utc)
@@ -70,7 +71,7 @@ for iy in range(start_year,end_year+1):
 
       while lt_file_days < lead_times[im-1]+1:
         yyyymm2=dt_tmp.year*100+dt_tmp.month
-        fname_in="Argo_Info/"+plat_short+str(yyyymm2)
+        fname_in=dir_argo+plat_short+str(yyyymm2)
         f=open(fname_in,"r")
         lines=f.readlines()
    
