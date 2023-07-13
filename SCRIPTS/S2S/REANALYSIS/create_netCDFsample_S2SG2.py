@@ -59,7 +59,8 @@ for iy in range(start_year,end_year+1):
     for ivar in range(0,nvar):
         dt_tmp=dt.datetime(iy,im,1,0,0,0)
         time_out=np.asarray([(dt_tmp-ref_dt).days])
-        dir_name=dir_work+"/"+exp_name+"/"+group_name+"/"+varnames_out[ivar]
+        dir_name=dir_work+"/"+system_name+"/"+exp_name \
+             +"/"+group_name+"/"+varnames_out[ivar]
         os.makedirs(dir_name,exist_ok=True)
         fname_out=dir_name+"/"+group_name+"_"+varnames_out[ivar] \
                    +"_"+str(iy*100+im)+fflag_tail

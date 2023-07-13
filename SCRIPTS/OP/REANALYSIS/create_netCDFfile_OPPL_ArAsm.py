@@ -35,7 +35,7 @@ levname="depth"
 timename="juld"
 numname="numobs"
 
-dir_out=dir_work+"/"+exp_name+"/"+group_name+"/"+plat_short
+dir_out=dir_work+"/"+system_name+"/"+exp_name+"/"+group_name+"/"+plat_short
 os.makedirs(dir_out,exist_ok=True)
 
 start_year=dt_start.year;start_month=dt_start.month

@@ -84,7 +84,7 @@ for iy in range(start_year,end_year+1):
     for mem in range(mem_start,mem_end+1):
       member_out=np.asarray([mem])
       mem_str="E"+'{:0>2d}'.format(mem)
-      dir_name=dir_work+"/"+exp_name+"/I"+str(yyyymm)+"/" + mem_str \
+      dir_name=dir_work+"/"+system_name+"/"+exp_name+"/I"+str(yyyymm)+"/" + mem_str \
              +'/'+group_name+'/'+plat_short
       os.makedirs(dir_name,exist_ok=True)
       fname_out=dir_name+"/"+group_name+"_"+plat_short \

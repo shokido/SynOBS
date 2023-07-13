@@ -85,7 +85,7 @@ for iy in range(start_year,end_year+1):
             imn=1
           dt_end=dt.datetime(iyn,imn,1,0,0,0)
           time_out=np.asarray([(dt_tmp-ref_dt).days])
-          dir_name=dir_work+"/"+exp_name+"/I"+str(yyyymm)+"/" + mem_str \
+          dir_name=dir_work+"/"+system_name+"/"+exp_name+"/I"+str(yyyymm)+"/" + mem_str \
              +'/'+group_name+"/"+varnames_out[ivar]
           os.makedirs(dir_name,exist_ok=True)
           fname_out=dir_name+"/"+group_name+"_"+varnames_out[ivar] \

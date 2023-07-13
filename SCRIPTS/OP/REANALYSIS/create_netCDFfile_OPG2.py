@@ -55,7 +55,7 @@ for icycle in range(0,ncycle):
     print(dt_1,dt_2)
     for ivar in range(0,nvar):
         yyyymm=dt_1.year*100+dt_1.month
-        dir_name=dir_work+"/"+exp_name+"/"+group_name+"/" \
+        dir_name=dir_work+"/"+system_name+"/"+exp_name+"/"+group_name+"/" \
                   +varnames_out[ivar]+"/"+str(yyyymm)
         os.makedirs(dir_name,exist_ok=True)
         fname_out=dir_name+"/"+group_name+"_"+varnames_out[ivar] \
