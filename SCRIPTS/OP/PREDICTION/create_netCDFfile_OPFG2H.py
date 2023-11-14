@@ -67,7 +67,7 @@ for inum in range(0,num_ini):
 
       for ivar in range(0,nvar):
         yyyymmdd=str(dt_start.year*10000+dt_start.month*100+dt_start.day)
-        dir_name=dir_work+"/"+exp_name+"/I"+str(yyyymmdd)+"/" \
+        dir_name=dir_work+"/"+system_name+"/"+exp_name+"/I"+str(yyyymmdd)+"/" \
              +'/'+group_name+"/"+varnames_out[ivar]
         os.makedirs(dir_name,exist_ok=True)
         fname_out=dir_name+"/"+group_name+"_"+varnames_out[ivar] \

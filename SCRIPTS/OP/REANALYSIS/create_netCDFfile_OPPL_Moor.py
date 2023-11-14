@@ -82,7 +82,7 @@ levname="depth"
 timename="juld"
 posname="npoint"
 
-dir_out=dir_work+"/"+exp_name+"/"+group_name+"/"+plat_short
+dir_out=dir_work+"/"+system_name+"/"+exp_name+"/"+group_name+"/"+plat_short
 os.makedirs(dir_out,exist_ok=True)
 
 for ifile in range(0,nfile):
