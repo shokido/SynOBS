@@ -4,7 +4,7 @@ import datetime as dt
 import numpy as np
 import os
 
-dir_work="../../../S2S-G2"
+dir_work="../../../S2S-AN"
 start_year=2003;start_month=1
 end_year=2003;end_month=12
 #end_year=2022;end_month=12
