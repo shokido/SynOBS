@@ -4,7 +4,7 @@ import datetime as dt
 import numpy as np
 import os
 
-dir_work="../../../S2S-RA"
+dir_work="../../../S2S-AN"
 dt_start=dt.datetime(2003,1,1,0,0,0) # Start date of output
 dt_end=dt.datetime(2003,1,31,0,0,0)  # End date of output (for an initial test...terminate at 31/1/2003)
 #dt_end=dt.datetime(2022,12,31,0,0,0)  # End date of output
@@ -62,8 +62,8 @@ for icycle in range(0,ncycle):
     print(dt_1,dt_2)
     for ivar in range(0,nvar):
         yyyymm=dt_1.year*100+dt_1.month
-        dir_name=dir_work+"/"+exp_name+"/"+group_name+"/" \
-                  +varnames_out[ivar]+"/"+str(yyyymm)
+        dir_name=dir_work+"/"+system_name+"/"+exp_name+"/"+group_name+"/" \
+                  +varnames_out[ivar]+"/"+str(dt_1.year)
         os.makedirs(dir_name,exist_ok=True)
         fname_out=dir_name+"/"+group_name+"_"+varnames_out[ivar] \
           +"_"+str(yyyymm*100+dt_1.day)+fflag_tail

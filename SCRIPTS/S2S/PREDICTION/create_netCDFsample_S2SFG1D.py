@@ -64,8 +64,8 @@ for iy in range(start_year,end_year+1):
           lt_str='D'+'{:0>2d}'.format(lt)
           dt_tmp=dt_ini+dt.timedelta(days=(lt-1)*interval)
           time_out=np.asarray([(dt_tmp-ref_dt).days])
-          dir_name=dir_work+"/"+exp_name+"/I"+str(yyyymm)+"/" + mem_str \
-             +'/'+group_name+"/"+varnames_out[ivar]
+          dir_name=dir_work+"/"+system_name+"/"+exp_name+"/I"+str(yyyymm) \
+             +"/" + mem_str +'/'+group_name+"/"+varnames_out[ivar]
           os.makedirs(dir_name,exist_ok=True)
           fname_out=dir_name+"/"+group_name+"_"+varnames_out[ivar] \
             +"_I"+str(yyyymm)+"_"+mem_str+'_'+lt_str+fflag_tail
