@@ -11,7 +11,7 @@ dt_end=dt.datetime(2003,1,31,0,0,0)  # End date of output (for an initial test..
 institution_name="JMA-MRI"
 contact_name="yfujii@mri-jma.go.jp"
 system_name="SAMPLE" # Name of your system
-exp_name="CNTL"  # Name of experiment
+exp_names=["CNTL"]  # Name of experiments
 version_name="0"
 
 # You don't need to edit following part
@@ -21,7 +21,6 @@ project_name="SynObs Flagship OSE"
 group_name="S2S-PL"
 plat_name="Mooring"
 plat_short="Moor"
-fflag_tail="_"+system_name+"_"+exp_name+".nc"
 time_interp="daily average value"
 
 start_year=dt_start.year;start_month=dt_start.month
@@ -82,8 +81,9 @@ levname="depth"
 timename="juld"
 posname="npoint"
 
-dir_out=dir_work+"/"+system_name+"/"+exp_name+"/"+group_name+"/"+plat_short
-os.makedirs(dir_out,exist_ok=True)
+for iexp in range(0,len(exp_names)):
+    dir_out=dir_work+"/"+system_name+"/"+exp_names[iexp]+"/"+group_name+"/"+plat_short
+    os.makedirs(dir_out,exist_ok=True)
 
 for ifile in range(0,nfile):
     yyyymm=dt_target[ifile].year*100+dt_target[ifile].month
@@ -99,54 +99,56 @@ for ifile in range(0,nfile):
         dt_out.append(dt_now)
         dt_now=dt_now+dt.timedelta(days=1)
     time_out_day=[(i-ref_dt).days+(i-ref_dt).seconds/(60.0*60.0*24.0) for i in dt_out]
-    fname_out=dir_out+"/"+group_name+"_"+plat_short \
-               +"_"+str(yyyymm)+fflag_tail
+    for iexp in range(0,len(exp_names)):
+        fflag_tail="_"+system_name+"_"+exp_names[iexp]+".nc"
+        fname_out=dir_out+"/"+group_name+"_"+plat_short \
+                   +"_"+str(yyyymm)+fflag_tail
 
-    nc_out=ncdf.Dataset(fname_out,"w")
-    nc_out.createDimension(levname,len(lev_out))
-    nc_out.createDimension(timename,len(time_out_day))
-    nc_out.createDimension(posname,len(lon_point))
-    nc_out.createVariable(levname,"float32",[levname])
-    nc_out.createVariable(timename,"double",[timename])
-    nc_out.createVariable("Mooring_name","str",[posname])
-    nc_out.createVariable(lonname,"float32",[posname])
-    nc_out.createVariable(latname,"float32",[posname])
-    nc_out.variables[lonname].long_name="Longitude"
-    nc_out.variables[lonname].units="degrees_east"
-    nc_out.variables[lonname][:]=np.asarray(lon_point)
-    nc_out.variables[latname].long_name="Latitude"
-    nc_out.variables[latname].units="degrees_north"
-    nc_out.variables[latname][:]=np.asarray(lat_point)
-    nc_out.variables[levname].long_name="Depths"
-    nc_out[levname].units="m"
-    nc_out[levname][:]=lev_out
-    nc_out.variables[timename].long_name="Initial time of the valid day"
-    nc_out.variables[timename].units=time_units
-    nc_out.variables[timename][:]=np.asarray(time_out_day)
-    for ivar in range(0,nvar):
-        if (vartypes[ivar]=="TLLL"):
-             nc_out.createVariable(varnames_out[ivar],"float32",[timename,levname,posname])
-             var_out=np.ones((len(time_out_day),len(lev_out),len(lon_point)))*missing
-        else:
-             nc_out.createVariable(varnames_out[ivar],"float32",[timename,posname])
-             var_out=np.ones((len(time_out_day),len(lon_point)))*missing
-        nc_out.variables[varnames_out[ivar]].units=varunits[ivar]
-        nc_out.variables[varnames_out[ivar]].long_name=varlong[ivar]
-        nc_out.variables[varnames_out[ivar]].missing_value=missing
-        nc_out.variables[varnames_out[ivar]][:]=var_out[:]
+        nc_out=ncdf.Dataset(fname_out,"w")
+        nc_out.createDimension(levname,len(lev_out))
+        nc_out.createDimension(timename,len(time_out_day))
+        nc_out.createDimension(posname,len(lon_point))
+        nc_out.createVariable(levname,"float32",[levname])
+        nc_out.createVariable(timename,"double",[timename])
+        nc_out.createVariable("Mooring_name","str",[posname])
+        nc_out.createVariable(lonname,"float32",[posname])
+        nc_out.createVariable(latname,"float32",[posname])
+        nc_out.variables[lonname].long_name="Longitude"
+        nc_out.variables[lonname].units="degrees_east"
+        nc_out.variables[lonname][:]=np.asarray(lon_point)
+        nc_out.variables[latname].long_name="Latitude"
+        nc_out.variables[latname].units="degrees_north"
+        nc_out.variables[latname][:]=np.asarray(lat_point)
+        nc_out.variables[levname].long_name="Depths"
+        nc_out[levname].units="m"
+        nc_out[levname][:]=lev_out
+        nc_out.variables[timename].long_name="Initial time of the valid day"
+        nc_out.variables[timename].units=time_units
+        nc_out.variables[timename][:]=np.asarray(time_out_day)
+        for ivar in range(0,nvar):
+            if (vartypes[ivar]=="TLLL"):
+                nc_out.createVariable(varnames_out[ivar],"float32",[timename,levname,posname])
+                var_out=np.ones((len(time_out_day),len(lev_out),len(lon_point)))*missing
+            else:
+                nc_out.createVariable(varnames_out[ivar],"float32",[timename,posname])
+                var_out=np.ones((len(time_out_day),len(lon_point)))*missing
+            nc_out.variables[varnames_out[ivar]].units=varunits[ivar]
+            nc_out.variables[varnames_out[ivar]].long_name=varlong[ivar]
+            nc_out.variables[varnames_out[ivar]].missing_value=missing
+            nc_out.variables[varnames_out[ivar]][:]=var_out[:]
 
-    nc_out.variables["Mooring_name"][:]=mname[:]
+        nc_out.variables["Mooring_name"][:]=mname[:]
 
-    title_name=project_name+" "+group_name+" "+plat_name+" Data"
-    nc_out.title=title_name
-    nc_out.institution=institution_name
-    nc_out.contact=contact_name
-    nc_out.system=system_name
-    nc_out.exp_name=exp_name
-    nc_out.version=version_name
-    nc_out.time_interp=time_interp
-    nc_out.creation_date=creation_date
+        title_name=project_name+" "+group_name+" "+plat_name+" Data"
+        nc_out.title=title_name
+        nc_out.institution=institution_name
+        nc_out.contact=contact_name
+        nc_out.system=system_name
+        nc_out.exp_name=exp_names[iexp]
+        nc_out.version=version_name
+        nc_out.time_interp=time_interp
+        nc_out.creation_date=creation_date
 
-    nc_out.close()
+        nc_out.close()
 
- 
+    
