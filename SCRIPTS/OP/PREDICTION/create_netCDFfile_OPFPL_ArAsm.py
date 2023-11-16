@@ -11,9 +11,9 @@ dt_ini_end=dt.datetime(2020,1,31,0,0,0)  # End date of prediction
 institution_name="JAMSTEC"
 contact_name="skido@jamstec.go.jp"
 system_name="SAMPLE" # Name of your system
+exp_names=["CNTL"]  # Name of experiments
 version_name="0"
 dir_argo="../../../Argo_Info/" # Path to files with "ArAsmYYYYMM"
-exp_names=["CNTL"]  # Name of experiments
 
 # You don't need to edit following part
 dt_now=dt.datetime.now(dt.timezone.utc)
