@@ -11,8 +11,8 @@ dt_end=dt.datetime(2020,1,31,0,0,0)  # End date of output (for an initial test..
 institution_name="JAMSTEC"
 contact_name="skido@jamstec.go.jp"
 system_name="SAMPLE" # Name of your system
-version_name="0"
 exp_names=["CNTL"]  # Name of experiments
+version_name="0"
 
 # You don't need to edit following part
 dt_now=dt.datetime.now(dt.timezone.utc)
