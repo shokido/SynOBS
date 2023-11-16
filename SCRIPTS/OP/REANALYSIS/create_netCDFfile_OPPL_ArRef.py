@@ -11,8 +11,8 @@ dt_end=dt.datetime(2020,1,31,0,0,0)  # End date of output (for an initial test..
 institution_name="JAMSTEC"
 contact_name="skido@jamstec.go.jp"
 system_name="SAMPLE" # Name of your system
-exp_name="CNTL"  # Name of experiment
 version_name="0"
+exp_names=["CNTL"]  # Name of experiment
 dir_argo="../../../Argo_Info/" # Path to files with "ArRefYYYYMM"
 
 # You don't need to edit following part
@@ -23,7 +23,6 @@ group_name="OP-PL"
 plat_name="Reference Argo"
 plat_short="ArRef"
 time_interp="daily average value"
-fflag_tail="_"+system_name+"_"+exp_name+".nc"
 
 missing=-9.99e7
 ref_dt=dt.datetime(1950,1,1,0,0,0); time_units="Days since "+str(ref_dt)+" utc"
@@ -35,8 +34,9 @@ levname="depth"
 timename="juld"
 numname="numobs"
 
-dir_out=dir_work+"/"+system_name+"/"+exp_name+"/"+group_name+"/"+plat_short
-os.makedirs(dir_out,exist_ok=True)
+for iexp in range(0,len(exp_names)):
+    dir_out=dir_work+"/"+system_name+"/"+exp_names[iexp]+"/"+group_name+"/"+plat_short
+    os.makedirs(dir_out,exist_ok=True)
 
 start_year=dt_start.year;start_month=dt_start.month
 end_year=dt_end.year;end_month=dt_end.month
@@ -53,10 +53,15 @@ for iy in range(start_year,end_year+1):
         im2=12+1
     for im in range(im1,im2):
         yyyymm=iy*100+im
-        fname_out=dir_out+"/"+group_name+"_"+plat_short+"_" \
-                   +str(yyyymm)+fflag_tail
-        fnames_Argo.append(dir_argo+plat_short+str(yyyymm))
-        fnames_out.append(fname_out)
+        fnames_Argo.append(dir_argo+plat_short+"/"+str(iy)+"/ArRef"+str(yyyymm))
+        fnames_out_tmp=[]
+        for iexp in range(0,len(exp_names)):
+            fflag_tail="_"+system_name+"_"+exp_names[iexp]+".nc"
+            dir_out=dir_work+"/"+system_name+"/"+exp_names[iexp]+"/"+group_name+"/"+plat_short
+            fname_out=dir_out+"/"+group_name+"_"+plat_short+"_" \
+                    +str(yyyymm)+fflag_tail
+            fnames_out_tmp.append(fname_out)
+        fnames_out.append(fnames_out_tmp)
 
 nfile=len(fnames_Argo)
 
@@ -67,80 +72,84 @@ for ifile in range(0,nfile):
     lon_out=[];lat_out=[];time_out=[]
     WMO_number=[];OBS_number=[];OBS_yyyymm=[]
     obs_num_start=50000
-    for iline in range(0,len(lines)):
+    reach_end=False
+    iline=0;iprof=0
+    while reach_end == False:
         tmp=lines[iline]
-        dt_tmp=dt.datetime(int(tmp[0:4]),int(tmp[4:6]),int(tmp[6:8]),int(tmp[9:11]),int(tmp[11:13]),0)
-        lat_tmp=float(tmp[14:19]);latf=tmp[19:20]
-        lon_tmp=float(tmp[21:27]);lonf=tmp[27:28]
-        if (latf=="S"):
-            lat=lat_tmp*(-1)
-        else:
-            lat=lat_tmp
-        if (lonf=="W"):
-            lon=360-lon_tmp
-        else:
-            lon=lon_tmp
+        dt_tmp=dt.datetime(int(tmp[0:4]),int(tmp[4:6]),int(tmp[6:8]),int(tmp[8:10]),int(tmp[10:12]),0)
+        lat=float(tmp[12:17])/100
+        lon=float(tmp[17:23])/100
         lon_out.append(lon)
         lat_out.append(lat)
         time_out.append(dt_tmp)
-        fflag=tmp[29:38].strip()
-        WMO_number.append(fflag)
-        OBS_number.append(obs_num_start+iline)
+        wmo_tmp=tmp[31:38]
+        WMO_number.append(wmo_tmp)
+        OBS_number.append(obs_num_start+iprof)
         OBS_yyyymm.append(dt_tmp.year*100+dt_tmp.month)
+        isS=tmp[38]
+        if (isS=="2"):
+            iline+=1
+            tmp=lines[iline]
+            varflag=tmp[39]
+            assert varflag == "S"
+        iline+=1
+        iprof+=1
+        if (iline==len(lines)):
+            reach_end=True
     # Create netCDF file
     nprof=len(lon_out)
-    nc_out=ncdf.Dataset(fnames_out[ifile],"w")
-    nc_out.createDimension(levname,len(lev_out))
-    nc_out.createDimension(numname,len(OBS_number))
-    nc_out.createVariable(levname,"float32",[levname])
-    nc_out.variables[levname].long_name="Depths"
-    nc_out.variables[levname].units="m"
-    nc_out.variables[levname][:]=lev_out[:]
-    nc_out.createVariable("T","float32",[numname,levname])
-    nc_out.createVariable("S","float32",[numname,levname])
-    nc_out.createVariable(timename,"double",[numname])
-    nc_out.createVariable(lonname,"float32",[numname])
-    nc_out.createVariable(latname,"float32",[numname])
-    WMO_number=np.asarray(WMO_number)
-    nc_out.createVariable("WMO_number","str",[numname])
-    nc_out.createVariable("OBS_number","int",[numname])
-    nc_out.createVariable("OBS_ym","int",[numname])
-    time_out_day=[(i-ref_dt).days+(i-ref_dt).seconds/(60.0*60.0*24.0) for i in time_out]
-    nc_out.variables[lonname].long_name="Longitude"
-    nc_out.variables[latname].long_name="latitude"
-    nc_out.variables[timename].long_name="time"
-    nc_out.variables["T"].long_name="Potential temperature"
-    nc_out.variables["S"].long_name="Salinity"
-    nc_out.variables["WMO_number"].long_name="WMO number"
-    nc_out.variables["OBS_number"].long_name="Observation number"
-    nc_out.variables["OBS_ym"].long_name="Observation YYYYMM"
+    for iexp in range(0,len(exp_names)):
+        nc_out=ncdf.Dataset(fnames_out[ifile][iexp],"w")
+        nc_out.createDimension(levname,len(lev_out))
+        nc_out.createDimension(numname,len(OBS_number))
+        nc_out.createVariable(levname,"float32",[levname])
+        nc_out.variables[levname].long_name="Depths"
+        nc_out.variables[levname].units="m"
+        nc_out.variables[levname][:]=lev_out[:]
+        nc_out.createVariable("T","float32",[numname,levname])
+        nc_out.createVariable("S","float32",[numname,levname])
+        nc_out.createVariable(timename,"double",[numname])
+        nc_out.createVariable(lonname,"float32",[numname])
+        nc_out.createVariable(latname,"float32",[numname])
+        WMO_number=np.asarray(WMO_number)
+        nc_out.createVariable("WMO_number","str",[numname])
+        nc_out.createVariable("OBS_number","int",[numname])
+        nc_out.createVariable("OBS_ym","int",[numname])
+        time_out_day=[(i-ref_dt).days+(i-ref_dt).seconds/(60.0*60.0*24.0) for i in time_out]
+        nc_out.variables[lonname].long_name="Longitude"
+        nc_out.variables[latname].long_name="latitude"
+        nc_out.variables[timename].long_name="time"
+        nc_out.variables["T"].long_name="Potential temperature"
+        nc_out.variables["S"].long_name="Salinity"
+        nc_out.variables["WMO_number"].long_name="WMO number"
+        nc_out.variables["OBS_number"].long_name="Observation number"
+        nc_out.variables["OBS_ym"].long_name="Observation YYYYMM"
 
-    nc_out.variables[lonname].units="degrees_east"
-    nc_out.variables[latname].units="degrees_north"
-    nc_out.variables[timename].units=time_units
-    nc_out.variables["T"].units="degrees celsius"
-    nc_out.variables["S"].units="psu"
+        nc_out.variables[lonname].units="degrees_east"
+        nc_out.variables[latname].units="degrees_north"
+        nc_out.variables[timename].units=time_units
+        nc_out.variables["T"].units="degrees celsius"
+        nc_out.variables["S"].units="psu"
 
-    nc_out.variables[lonname][:]=np.asarray(lon_out)
-    nc_out.variables[latname][:]=np.asarray(lat_out)
-    nc_out.variables[timename][:]=np.asarray(time_out_day)
-    nc_out.variables["OBS_number"][:]=np.asarray(OBS_number)
-    nc_out.variables["OBS_ym"][:]=np.asarray(OBS_yyyymm)
-    nc_out.variables["WMO_number"][:]=np.asarray(WMO_number)
-    nc_out.variables["T"].missing_value=missing
-    nc_out.variables["S"].missing_value=missing
-    nc_out.variables["T"][:]=np.ones((len(OBS_number),len(lev_out)))*missing
-    nc_out.variables["S"][:]=np.ones((len(OBS_number),len(lev_out)))*missing
- 
-    title_name=project_name+" "+group_name+" "+plat_name+" Data"
-    nc_out.title=title_name
-    nc_out.institution=institution_name
-    nc_out.contact=contact_name
-    nc_out.system=system_name
-    nc_out.exp_name=exp_name
-    nc_out.version=version_name
-    nc_out.time_interp=time_interp
-    nc_out.creation_date=creation_date
-
-    nc_out.close()
+        nc_out.variables[lonname][:]=np.asarray(lon_out)
+        nc_out.variables[latname][:]=np.asarray(lat_out)
+        nc_out.variables[timename][:]=np.asarray(time_out_day)
+        nc_out.variables["OBS_number"][:]=np.asarray(OBS_number)
+        nc_out.variables["OBS_ym"][:]=np.asarray(OBS_yyyymm)
+        nc_out.variables["WMO_number"][:]=np.asarray(WMO_number)
+        nc_out.variables["T"].missing_value=missing
+        nc_out.variables["S"].missing_value=missing
+        nc_out.variables["T"][:]=np.ones((len(OBS_number),len(lev_out)))*missing
+        nc_out.variables["S"][:]=np.ones((len(OBS_number),len(lev_out)))*missing
+    
+        title_name=project_name+" "+group_name+" "+plat_name+" Data"
+        nc_out.title=title_name
+        nc_out.institution=institution_name
+        nc_out.contact=contact_name
+        nc_out.system=system_name
+        nc_out.exp_name=exp_names[iexp]
+        nc_out.version=version_name
+        nc_out.time_interp=time_interp
+        nc_out.creation_date=creation_date
+        nc_out.close()
 

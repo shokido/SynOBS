@@ -11,8 +11,8 @@ dt_ini_end=dt.datetime(2020,1,31,0,0,0)  # End date of prediction
 institution_name="JAMSTEC"
 contact_name="skido@jamstec.go.jp"
 system_name="SAMPLE" # Name of your system
-exp_name="CNTL"  # Name of experiment
 version_name="0"
+exp_names=["CNTL"]  # Name of experiments
 
 # You don't need to edit following part
 dt_now=dt.datetime.now(dt.timezone.utc)
@@ -20,7 +20,6 @@ creation_date=dt_now.strftime('%Y-%m-%d %H:%M:%S utc')
 project_name="SynObs Flagship OSE"
 group_name="OPF-G2"
 time_interp="daily average fields"
-fflag_tail="_"+system_name+"_"+exp_name+".nc"
 
 dts_ini=[]
 ndays=int((dt_ini_end-dt_ini_start).days/5)+1
@@ -50,66 +49,67 @@ lonname="longitude"
 latname="latitude"
 levname="depth"
 timename="juld"
+for iexp in range(0,len(exp_names)):
+    fflag_tail="_"+system_name+"_"+exp_names[iexp]+".nc"
+    for inum in range(0,num_ini):
+        dt_start=dts_ini[inum]
+        initial_time=dt_start.strftime('%Y-%m-%d %H:%M:%S utc')
+        dt_end=dt_start+dt.timedelta(days=10)
+        nskip=5
+        num_fcst=int(((dt_end-dt_start).days+1)/nskip)
+        leadtimes=np.asarray([1,3,7])
+        num_fcst=len(leadtimes)
+        for icycle in leadtimes:
+            dt_pred=dt_start+dt.timedelta(days=int(icycle-1))
+            time_vstar=(dt_pred-ref_dt).days+(dt_pred-ref_dt).seconds/(60*60*24)
+            time_out=np.asarray([time_vstar])
+            lead_time_out=np.asarray(['D'+'{:0>2d}'.format(icycle)])
+            for ivar in range(0,nvar):
+                yyyymmdd=str(dt_start.year*10000+dt_start.month*100+dt_start.day)
+                dir_name=dir_work+"/"+system_name+"/"+exp_names[iexp]+"/I"+str(yyyymmdd)+"/" \
+                    +'/'+group_name+"/"+varnames_out[ivar]
+                os.makedirs(dir_name,exist_ok=True)
+                fname_out=dir_name+"/"+group_name+"_"+varnames_out[ivar] \
+                    +"_I"+str(yyyymmdd)+'_D'+str(icycle)+fflag_tail
+                print(fname_out)
 
-for inum in range(0,num_ini):
-    dt_start=dts_ini[inum]
-    initial_time=dt_start.strftime('%Y-%m-%d %H:%M:%S utc')
-    dt_end=dt_start+dt.timedelta(days=10)
-    nskip=5
-    num_fcst=int(((dt_end-dt_start).days+1)/nskip)
-    leadtimes=np.asarray([1,3,7])
-    num_fcst=len(leadtimes)
-    for icycle in leadtimes:
-      dt_pred=dt_start+dt.timedelta(days=int(icycle-1))
-      time_vstar=(dt_pred-ref_dt).days+(dt_pred-ref_dt).seconds/(60*60*24)
-      time_out=np.asarray([time_vstar])
-      lead_time_out=np.asarray(['D'+'{:0>2d}'.format(icycle)])
-      for ivar in range(0,nvar):
-        yyyymmdd=str(dt_start.year*10000+dt_start.month*100+dt_start.day)
-        dir_name=dir_work+"/"+system_name+"/"+exp_name+"/I"+str(yyyymmdd)+"/" \
-             +'/'+group_name+"/"+varnames_out[ivar]
-        os.makedirs(dir_name,exist_ok=True)
-        fname_out=dir_name+"/"+group_name+"_"+varnames_out[ivar] \
-            +"_I"+str(yyyymmdd)+'_D'+str(icycle)+fflag_tail
-        print(fname_out)
+                # Create netCDF file
+                nc_out=ncdf.Dataset(fname_out,"w")
+                nc_out.createDimension(lonname,len(lon_out))
+                nc_out.createDimension(latname,len(lat_out))
+                nc_out.createDimension(timename,len(time_out))
+                nc_out.createVariable(lonname,"float32",[lonname])
+                nc_out.createVariable(latname,"float32",[latname])
+                nc_out.createVariable(timename,"double",[timename])
+                nc_out.createVariable("lead_time","str",[timename])
+                nc_out[lonname][:]=lon_out[:]
+                nc_out[lonname].long_name="Longitude"
+                nc_out[lonname].units="degrees_east"
+                nc_out[latname][:]=lat_out[:]
+                nc_out[latname].long_name="Latitude"
+                nc_out[latname].units="degrees_north"
+                nc_out[timename][:]=time_out[:]
+                nc_out[timename].long_name="Initial time of the valid day"
+                nc_out[timename].units=time_units
+                nc_out["lead_time"][:]=lead_time_out[:]
+                nc_out["lead_time"].long_name="Lead time index of the valid day"
 
-        # Create netCDF file
-        nc_out=ncdf.Dataset(fname_out,"w")
-        nc_out.createDimension(lonname,len(lon_out))
-        nc_out.createDimension(latname,len(lat_out))
-        nc_out.createDimension(timename,len(time_out))
-        nc_out.createVariable(lonname,"float32",[lonname])
-        nc_out.createVariable(latname,"float32",[latname])
-        nc_out.createVariable(timename,"double",[timename])
-        nc_out.createVariable("lead_time","str",[timename])
-        nc_out[lonname][:]=lon_out[:]
-        nc_out[lonname].long_name="Longitude"
-        nc_out[lonname].units="degrees_east"
-        nc_out[latname][:]=lat_out[:]
-        nc_out[latname].long_name="Latitude"
-        nc_out[latname].units="degrees_north"
-        nc_out[timename][:]=time_out[:]
-        nc_out[timename].long_name="Initial time of the valid day"
-        nc_out[timename].units=time_units
-        nc_out["lead_time"][:]=lead_time_out[:]
-        nc_out["lead_time"].long_name="Lead time index of the valid day"
+                nc_out.createVariable(varnames_out[ivar],"float32",[timename,latname,lonname])
+                var_out=np.ones((len(time_out),len(lat_out),len(lon_out)))*missing
+                nc_out.variables[varnames_out[ivar]].units=varunits[ivar]
+                nc_out.variables[varnames_out[ivar]].long_name=varlong[ivar]
+                nc_out.variables[varnames_out[ivar]].missing_value=missing
+                nc_out.variables[varnames_out[ivar]][:]=var_out[:]
 
-        nc_out.createVariable(varnames_out[ivar],"float32",[timename,latname,lonname])
-        var_out=np.ones((len(time_out),len(lat_out),len(lon_out)))*missing
-        nc_out.variables[varnames_out[ivar]].units=varunits[ivar]
-        nc_out.variables[varnames_out[ivar]].long_name=varlong[ivar]
-        nc_out.variables[varnames_out[ivar]].missing_value=missing
-        nc_out.variables[varnames_out[ivar]][:]=var_out[:]
+                title_name=project_name+" "+group_name+" "+varnames_out[ivar]+" Data"
+                nc_out.title=title_name
+                nc_out.institution=institution_name
+                nc_out.contact=contact_name
+                nc_out.system=system_name
+                nc_out.exp_name=exp_names[iexp]
+                nc_out.initial_time=initial_time
+                nc_out.version=version_name
+                nc_out.time_interp=time_interp
+                nc_out.creation_date=creation_date
 
-        title_name=project_name+" "+group_name+" "+varnames_out[ivar]+" Data"
-        nc_out.title=title_name
-        nc_out.institution=institution_name
-        nc_out.contact=contact_name
-        nc_out.system=system_name
-        nc_out.exp_name=exp_name
-        nc_out.initial_time=initial_time
-        nc_out.version=version_name
-        nc_out.time_interp=time_interp
-        nc_out.creation_date=creation_date
-
-        nc_out.close()
+                nc_out.close()

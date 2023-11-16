@@ -11,9 +11,8 @@ dt_end=dt.datetime(2020,1,31,0,0,0)  # End date of output (for an initial test..
 institution_name="JAMSTEC"
 contact_name="skido@jamstec.go.jp"
 system_name="SAMPLE" # Name of your system
-exp_name="CNTL"  # Name of experiment
 version_name="0"
-root_dir='..'
+exp_names=["CNTL"]  # Name of experiments
 
 # You don't need to edit following part
 dt_now=dt.datetime.now(dt.timezone.utc)
@@ -21,7 +20,6 @@ creation_date=dt_now.strftime('%Y-%m-%d %H:%M:%S utc')
 project_name="SynObs Flagship OSE"
 group_name="OP-G2H"
 time_interp="daily average fields"
-fflag_tail="_"+system_name+"_"+exp_name+".nc"
 nskip=1
 ncycle=int(((dt_end-dt_start).days+1)/nskip)
 varnames_out=[];vartypes=[];varunits=[];varlong=[]
@@ -46,51 +44,52 @@ ref_dt=dt.datetime(1950,1,1,0,0,0); time_units="Days since "+str(ref_dt)+" utc"
 lonname="longitude"
 latname="latitude"
 timename="juld"
+for iexp in range(0,len(exp_names)):
+    fflag_tail="_"+system_name+"_"+exp_names[iexp]+".nc"
+    for icycle in range(0,ncycle):
+        dt_1=dt_start+dt.timedelta(days=icycle*nskip)
+        dt_2=dt_start+dt.timedelta(days=(icycle+1)*nskip-1)
+        time_out=np.asarray([(dt_1-ref_dt).days])
+        print(dt_1,dt_2)
+        for ivar in range(0,nvar):
+            yyyymm=dt_1.year*100+dt_1.month
+            dir_name=dir_work+"/"+system_name+"/"+exp_names[iexp]+"/"+group_name+"/" \
+                      +varnames_out[ivar]+"/"+str(dt_1.year)
+            os.makedirs(dir_name,exist_ok=True)
+            fname_out=dir_name+"/"+group_name+"_"+varnames_out[ivar] \
+              +"_"+str(yyyymm*100+dt_1.day)+fflag_tail
 
-for icycle in range(0,ncycle):
-    dt_1=dt_start+dt.timedelta(days=icycle*nskip)
-    dt_2=dt_start+dt.timedelta(days=(icycle+1)*nskip-1)
-    time_out=np.asarray([(dt_1-ref_dt).days])
-    print(dt_1,dt_2)
-    for ivar in range(0,nvar):
-        yyyymm=dt_1.year*100+dt_1.month
-        dir_name=dir_work+"/"+system_name+"/"+exp_name+"/"+group_name+"/" \
-                  +varnames_out[ivar]+"/"+str(dt_1.year)
-        os.makedirs(dir_name,exist_ok=True)
-        fname_out=dir_name+"/"+group_name+"_"+varnames_out[ivar] \
-          +"_"+str(yyyymm*100+dt_1.day)+fflag_tail
+            nc_out=ncdf.Dataset(fname_out,"w")
+            nc_out.createDimension(lonname,len(lon_out))
+            nc_out.createDimension(latname,len(lat_out))
+            nc_out.createDimension(timename,len(time_out))
+            nc_out.createVariable(lonname,"float32",[lonname])
+            nc_out.createVariable(latname,"float32",[latname])
+            nc_out.createVariable(timename,"double",[timename])
+            nc_out[lonname][:]=lon_out[:]
+            nc_out[lonname].long_name="Longitude"
+            nc_out[lonname].units="degrees_east"
+            nc_out[latname][:]=lat_out[:]
+            nc_out[latname].long_name="Latitude"
+            nc_out[latname].units="degrees_north"
+            nc_out[timename][:]=time_out[:]
+            nc_out[timename].long_name="Initial time of the valid day"
+            nc_out[timename].units=time_units
+            nc_out.createVariable(varnames_out[ivar],"float32",[timename,latname,lonname])
+            var_out=np.ones((len(time_out),len(lat_out),len(lon_out)))*missing
+            nc_out.variables[varnames_out[ivar]].units=varunits[ivar]
+            nc_out.variables[varnames_out[ivar]].long_name=varlong[ivar]
+            nc_out.variables[varnames_out[ivar]].missing_value=missing
+            nc_out.variables[varnames_out[ivar]][:]=var_out[:]
 
-        nc_out=ncdf.Dataset(fname_out,"w")
-        nc_out.createDimension(lonname,len(lon_out))
-        nc_out.createDimension(latname,len(lat_out))
-        nc_out.createDimension(timename,len(time_out))
-        nc_out.createVariable(lonname,"float32",[lonname])
-        nc_out.createVariable(latname,"float32",[latname])
-        nc_out.createVariable(timename,"double",[timename])
-        nc_out[lonname][:]=lon_out[:]
-        nc_out[lonname].long_name="Longitude"
-        nc_out[lonname].units="degrees_east"
-        nc_out[latname][:]=lat_out[:]
-        nc_out[latname].long_name="Latitude"
-        nc_out[latname].units="degrees_north"
-        nc_out[timename][:]=time_out[:]
-        nc_out[timename].long_name="Initial time of the valid day"
-        nc_out[timename].units=time_units
-        nc_out.createVariable(varnames_out[ivar],"float32",[timename,latname,lonname])
-        var_out=np.ones((len(time_out),len(lat_out),len(lon_out)))*missing
-        nc_out.variables[varnames_out[ivar]].units=varunits[ivar]
-        nc_out.variables[varnames_out[ivar]].long_name=varlong[ivar]
-        nc_out.variables[varnames_out[ivar]].missing_value=missing
-        nc_out.variables[varnames_out[ivar]][:]=var_out[:]
-
-        title_name=project_name+" "+group_name+" "+varnames_out[ivar]+" Data"
-        nc_out.title=title_name
-        nc_out.institution=institution_name
-        nc_out.contact=contact_name
-        nc_out.system=system_name
-        nc_out.exp_name=exp_name
-        nc_out.version=version_name
-        nc_out.time_interp=time_interp
-        nc_out.creation_date=creation_date
-        nc_out.close()
- 
+            title_name=project_name+" "+group_name+" "+varnames_out[ivar]+" Data"
+            nc_out.title=title_name
+            nc_out.institution=institution_name
+            nc_out.contact=contact_name
+            nc_out.system=system_name
+            nc_out.exp_name=exp_names[iexp]
+            nc_out.version=version_name
+            nc_out.time_interp=time_interp
+            nc_out.creation_date=creation_date
+            nc_out.close()
+    
