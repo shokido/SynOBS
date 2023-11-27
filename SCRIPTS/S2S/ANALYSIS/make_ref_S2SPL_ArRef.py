@@ -3,6 +3,7 @@ import netCDF4 as ncdf
 import datetime as dt
 import numpy as np
 import os
+from diag_libs import *
 
 dir_work="../../../S2S-AN"
 dt_start=dt.datetime(2003,1,1,0,0,0) # Start date of output
@@ -67,8 +68,10 @@ for ifile in range(0,nfile):
 
     lon_out=[];lat_out=[];time_out=[]
     temp_out=[]
+    ptemp_out=[]
     salt_out=[]
     WMO_number=[];OBS_number=[];OBS_yyyymm=[]
+    center_name=[];delay_name=[]
     reach_end=False
     iline=0;iprof=0
     while reach_end == False:
@@ -79,6 +82,14 @@ for ifile in range(0,nfile):
         lon_out.append(lon)
         lat_out.append(lat)
         time_out.append(dt_tmp)
+        delay_tmp=tmp[25]
+        if (delay_tmp=="7"):
+            delay_tmp="DELAYED"
+        else:
+            delay_tmp="REALTIME"
+        center_tmp=tmp[28:30]
+        center_name.append(center_tmp)
+        delay_name.append(delay_tmp)
         wmo_tmp=tmp[31:38]
         WMO_number.append(wmo_tmp)
         OBS_number.append(obs_num_start+iprof)
@@ -89,6 +100,7 @@ for ifile in range(0,nfile):
         nz=int(len(tmp_T)/5)
         temp_tmp=np.ones((len(lev_out)))*missing
         salt_tmp=np.ones((len(lev_out)))*missing
+        ptemp_tmp=np.ones((len(lev_out)))*missing
         for iz in range(0,nz):
             iz1=iz*5
             iz2=iz*5+5
@@ -106,20 +118,26 @@ for ifile in range(0,nfile):
             for iz in range(0,nz):
                 iz1=iz*5
                 iz2=iz*5+5
-                val=float(tmp_S[iz1:iz2])/1000
-                if (val ==99.999):
-                    val=missing
-                salt_tmp[iz]=val
+                val_salt=float(tmp_S[iz1:iz2])/1000
+                if (val_salt ==99.999):
+                    val_salt=missing
+                salt_tmp[iz]=val_salt
+            pres=sw_press(lev_out,np.ones(len(lev_out))*lat)[0]
+            ptemp_tmp=sw_ptmp(salt_tmp,temp_tmp,pres,0.0)
+            ptemp_tmp[salt_tmp==missing]=missing
         else:
             for iz in range(0,nz):
                 salt_tmp[iz]=missing
+                ptemp_tmp[iz]=missing
         iline+=1
         iprof+=1
         temp_out.append(temp_tmp)
         salt_out.append(salt_tmp)
+        ptemp_out.append(ptemp_tmp)
         if (iline==len(lines)):
             reach_end=True
     # Create netCDF file
+    print("Generating "+fnames_out[ifile])
     nprof=len(lon_out)
     nc_out=ncdf.Dataset(fnames_out[ifile],"w")
     nc_out.createDimension(levname,len(lev_out))
@@ -128,21 +146,29 @@ for ifile in range(0,nfile):
     nc_out.variables[levname].long_name="Depths"
     nc_out.variables[levname].units="m"
     nc_out.variables[levname][:]=lev_out[:]
+    nc_out.createVariable("TI","float32",[numname,levname])
     nc_out.createVariable("T","float32",[numname,levname])
     nc_out.createVariable("S","float32",[numname,levname])
     nc_out.createVariable(timename,"double",[numname])
     nc_out.createVariable(lonname,"float32",[numname])
     nc_out.createVariable(latname,"float32",[numname])
     WMO_number=np.asarray(WMO_number)
+    center_name=np.asarray(center_name)
+    delay_name=np.asarray(delay_name)
+    nc_out.createVariable("DELAY_OR_REAL","str",[numname])
+    nc_out.createVariable("CENTER_NAME","str",[numname])
     nc_out.createVariable("WMO_number","str",[numname])
     nc_out.createVariable("OBS_number","int",[numname])
     nc_out.createVariable("OBS_ym","int",[numname])
     time_out_day=[(i-ref_dt).days+(i-ref_dt).seconds/(60.0*60.0*24.0) for i in time_out]
     nc_out.variables[lonname].long_name="Longitude"
     nc_out.variables[latname].long_name="latitude"
-    nc_out.variables[timename].long_name="Observation time"
+    nc_out.variables[timename].long_name="time"
     nc_out.variables["T"].long_name="Potential temperature"
+    nc_out.variables["TI"].long_name="In-situ temperature"
     nc_out.variables["S"].long_name="Salinity"
+    nc_out.variables["DELAY_OR_REAL"].long_name="DELAYED of REALTIME data"
+    nc_out.variables["CENTER_NAME"].long_name="Name of center"
     nc_out.variables["WMO_number"].long_name="WMO number"
     nc_out.variables["OBS_number"].long_name="Observation number"
     nc_out.variables["OBS_ym"].long_name="Observation YYYYMM"
@@ -150,6 +176,7 @@ for ifile in range(0,nfile):
     nc_out.variables[lonname].units="degrees_east"
     nc_out.variables[latname].units="degrees_north"
     nc_out.variables[timename].units=time_units
+    nc_out.variables["TI"].units="degrees celsius"
     nc_out.variables["T"].units="degrees celsius"
     nc_out.variables["S"].units="psu"
 
@@ -159,22 +186,21 @@ for ifile in range(0,nfile):
     nc_out.variables["OBS_number"][:]=np.asarray(OBS_number)
     nc_out.variables["OBS_ym"][:]=np.asarray(OBS_yyyymm)
     nc_out.variables["WMO_number"][:]=np.asarray(WMO_number)
+    nc_out.variables["DELAY_OR_REAL"][:]=np.asarray(delay_name)
+    nc_out.variables["CENTER_NAME"][:]=np.asarray(center_name)
     nc_out.variables["T"].missing_value=missing
+    nc_out.variables["TI"].missing_value=missing
     nc_out.variables["S"].missing_value=missing
     for iprof in range(0,nprof):
-        nc_out.variables["T"][iprof,:]=temp_out[iprof]
+        nc_out.variables["T"][iprof,:]=ptemp_out[iprof]
+        nc_out.variables["TI"][iprof,:]=temp_out[iprof]
         nc_out.variables["S"][iprof,:]=salt_out[iprof]
-    #         nc_out.variables["T"][:]=np.ones((len(OBS_number),len(lev_out)))*missing
-    # nc_out.variables["S"][:]=np.ones((len(OBS_number),len(lev_out)))*missing
-
+ 
     title_name=project_name+" "+group_name+" "+plat_name+" Data"
     nc_out.title=title_name
-    nc_out.institution=institution_name
     nc_out.contact=contact_name
-    nc_out.system=system_name
     nc_out.version=version_name
     nc_out.time_interp=time_interp
     nc_out.creation_date=creation_date
-
     nc_out.close()
 
