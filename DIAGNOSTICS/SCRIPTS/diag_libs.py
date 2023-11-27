@@ -1,21 +1,3 @@
-import numpy as np
-def find_exceed_depth(vars, depths, thres_var):
-    # Find index where temperature crosses the isotherm
-    # Note: depths should be increasing with index
-    idx = np.where(np.diff(np.sign(vars - thres_var)))[0]
-
-    if idx.size == 0:
-        return np.nan  # return NaN if no isotherm found
-
-    # For simplicity, we take the first crossing
-    idx = idx[0]
-    # Perform linear interpolation between the two depths
-    x1, x2 = vars[idx], vars[idx + 1]
-    y1, y2 = depths[idx], depths[idx + 1]
-
-    var_depth = y1 + (y2 - y1) * (thres_var - x1) / (x2 - x1)
-    return var_depth
-
 """
   Sea water state functions 
 		based on UNESCO algorithms
@@ -24,7 +6,6 @@ def find_exceed_depth(vars, depths, thres_var):
 """
 import numpy as np
 import sys
-#import pdb
 
 def sw_press(zz,LAT):
   """
@@ -345,6 +326,7 @@ def sw_dens(S,T,P):
 
   return rho
 
+# Vertical interpolation
 def pcws_lagr1(Xp,Yp,xx):
   """
    Piecewise linear Lagr. Polynomial degree 1
@@ -362,8 +344,8 @@ def pcws_lagr1(Xp,Yp,xx):
       i1=0
       i2=1  
   elif (Xp[-1]<=xx):
-      i1=len(Xp)-1
-      i2=len(Xp)
+      i1=len(Xp)-2
+      i2=len(Xp)-1
   else:
     imin = np.argmin(dmm)
     if Xp[imin] < xx :
@@ -390,14 +372,43 @@ def pcws_lagr1_multi(Xp,Yp,xs):
   res=np.asarray(res)
   return(res)
 
-def cal_vint(Xp,Yp,x1,x2,dx):
-  x_ref=np.arange(x1,x2+dx,dx)
+def get_valid(x,y):
+    ind_valid=np.where(np.isnan(y)==False)[0]
+    x_valid=np.copy(x[ind_valid])
+    y_valid=np.copy(y[ind_valid])
+    return(x_valid,y_valid)
+def cal_vint(Xp,Yp,x1,x2):
+  Xp_valid,Yp_valid=get_valid(Xp,Yp) # Remove nan values
+  x_ref=np.asarray((x1))
+  x_ind=np.where((Xp_valid> x1) & (Xp_valid < x2))[0]
+  if (len(x_ind)>0):
+    x_vals=np.asarray([Xp_valid[i] for i in x_ind])
+    x_ref=np.append(x_ref,x_vals)
+  x_ref=np.append(x_ref,x2)
   y_ref=pcws_lagr1_multi(Xp,Yp,x_ref)
   dx_ref=np.diff(x_ref)
-  # 0.5*(y1+y2)*dx=0.5*(y2-y1+2*y1)
   dy_ref=np.diff(y_ref)+2*y_ref[0:len(y_ref)-1]
   res=np.sum(dx_ref*dy_ref)*0.5
   return(res)
+
+def find_isothern(vars, depths, thres_var):
+    # Find index where temperature crosses the isotherm
+    # Note: depths should be increasing with index
+    idx = np.where(np.diff(np.sign(vars - thres_var)))[0]
+    if (vars[0]<thres_var):
+        return np.nan
+    if idx.size == 0:
+        return np.nan  # return NaN if no isotherm found
+
+    # For simplicity, we take the first crossing
+    idx = idx[0]
+    # Perform linear interpolation between the two depths
+    x1, x2 = vars[idx], vars[idx + 1]
+    y1, y2 = depths[idx], depths[idx + 1]
+
+    var_depth = y1 + (y2 - y1) * (thres_var - x1) / (x2 - x1)
+    return var_depth
+
 def find_ild(temp, depths, thres_temp):
 #    dens=sw_dens(salt,temp,depths)
     thres_var=temp[0]-thres_temp
@@ -442,6 +453,9 @@ def find_tchp(temp,salt, depths):
     thres_temp=26.0
     # Find index where temperature crosses the isotherm
     # Note: depths should be increasing with index
+    if (vars[0]<thres_temp):
+        return np.nan
+
     idx = np.where(np.diff(np.sign(temp - thres_temp)))[0]
 
     if idx.size == 0:
