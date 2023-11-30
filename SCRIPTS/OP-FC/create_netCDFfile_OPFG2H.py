@@ -18,7 +18,7 @@ version_name="0"
 dt_now=dt.datetime.now(dt.timezone.utc)
 creation_date=dt_now.strftime('%Y-%m-%d %H:%M:%S utc')
 project_name="SynObs Flagship OSE"
-group_name="OPF-G2H"
+group_name="OPF-DH"
 time_interp="daily average fields"
 
 dts_ini=[]

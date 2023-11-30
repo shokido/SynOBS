@@ -18,7 +18,7 @@ version_name="0"
 dt_now=dt.datetime.now(dt.timezone.utc)
 creation_date=dt_now.strftime('%Y-%m-%d %H:%M:%S utc')
 project_name="SynObs Flagship OSE"
-group_name="OP-G1"
+group_name="OPA-P"
 time_interp="pentad average fields"
 
 nskip=5
