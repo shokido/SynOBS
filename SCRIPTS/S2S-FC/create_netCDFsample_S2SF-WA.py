@@ -1,4 +1,4 @@
-# Python script for generating netCDF sample for S2SF-G1W
+# Python script for generating netCDF sample for S2SF-G1WA
 import netCDF4 as ncdf
 import datetime as dt
 import numpy as np
@@ -14,37 +14,36 @@ contact_name="yfujii@mri-jma.go.jp"
 system_name="SAMPLE"
 exp_names=["CNTL"]  # Name of experiments
 version_name="0"
+root_dir='..'
 
 # You don't need to edit following part
 dt_now=dt.datetime.now(dt.timezone.utc)
 creation_date=dt_now.strftime('%Y-%m-%d %H:%M:%S utc')
 project_name="SynObs Flagship OSE"
-group_name="S2SF-G1W"
+group_name="S2SF-WA"
 time_interp="weekly average fields"
 interval=7
 
 varnames_out=[];vartypes=[];varunits=[];varlong=[]
-varnames_out.append("SST");vartypes.append("TLL");varlong.append("Potential temperature at 1m");varunits.append("degree C")
-varnames_out.append("SSS");vartypes.append("TLL");varlong.append("Practical salinity at 1m");varunits.append("psu")
-varnames_out.append("SSU");vartypes.append("TLL");varlong.append("Zonal velocity at 1m");varunits.append("m/s")
-varnames_out.append("SSV");vartypes.append("TLL");varlong.append("Meridional velocity at 1m");varunits.append("m/s")
-varnames_out.append("SSH");vartypes.append("TLL");varlong.append("Sea surface height");varunits.append("m")
-varnames_out.append("0-300mT");vartypes.append("TLL");varlong.append("Vertically averaged T between 0m and 300m");varunits.append("degree C")
-varnames_out.append("Z20");vartypes.append("TLL");varlong.append("Depth of the 20 degree isotherm estimated from T.");varunits.append("m")
-varnames_out.append("MLD001");vartypes.append("TLL");varlong.append("Mixed Layer Depth with the 0.05 density criteria");varunits.append("m")
-varnames_out.append("0-300mS");vartypes.append("TLL");varlong.append("Vertically averaged S between 0m and 300m");varunits.append("degree C")
-varnames_out.append("SIC");vartypes.append("TLL");varlong.append("Sea Ice Concentration ratio (0 to 1)");varunits.append("")
-varnames_out.append("SIT");vartypes.append("TLL");varlong.append("Sea Ice Thickness");varunits.append("m")
-varnames_out.append("0-50mT");vartypes.append("TLL");varlong.append("Vertically averaged T between 0m and 50m");varunits.append("degree C")
-varnames_out.append("Z17");vartypes.append("TLL");varlong.append("Depth of the 17 degree isotherm estimated from T.");varunits.append("m")
-varnames_out.append("Z26");vartypes.append("TLL");varlong.append("Depth of the 26 degree isotherm estimated from T.");varunits.append("m")
-varnames_out.append("Z28");vartypes.append("TLL");varlong.append("Depth of the 28 degree isotherm estimated from T.");varunits.append("m")
-varnames_out.append("TCHP");vartypes.append("TLL");varlong.append("Tropical Cyclone Heat Potential. Calculated as the oceanic heat content above Z26");varunits.append("kJ/cm^2")
-varnames_out.append("MLD005");vartypes.append("TLL");varlong.append("Mixed Layer Depth with the 0.05 density criteria");varunits.append("m")
-varnames_out.append("ILD05");vartypes.append("TLL");varlong.append("Isothermal Layer Depth with 0.5 degree temperature criteria");varunits.append("m")
-varnames_out.append("SWHF");vartypes.append("TLL");varlong.append("Shortwave (solar) heat flux at the sea surface");varunits.append("W/m^2")
-varnames_out.append("NetHF");vartypes.append("TLL");varlong.append("Net heat flux at the sea surface");varunits.append("W/m^2")
+varnames_out.append("T2m");vartypes.append("TLL");varlong.append("Air Temperature at 2m high");varunits.append("degree C")
+varnames_out.append("U10m");vartypes.append("TLL");varlong.append("Zonal wind speed at 10m high");varunits.append("m/s")
+varnames_out.append("V10m");vartypes.append("TLL");varlong.append("Meridional wind speed at 10m high");varunits.append("m/s")
+varnames_out.append("Tatm");vartypes.append("TLLL");varlong.append("Air Temperatureat pressure levels");varunits.append("degree C")
+varnames_out.append("Uatm");vartypes.append("TLLL");varlong.append("Zonal wind speed at pressure levels");varunits.append("m/s")
+varnames_out.append("Vatm");vartypes.append("TLLL");varlong.append("Meridional wind speed at pressure levels");varunits.append("m/s")
+varnames_out.append("Qatm");vartypes.append("TLLL");varlong.append("Specific humidity at pressure levels");varunits.append("kg/kg")
+varnames_out.append("MSLP");vartypes.append("TLL");varlong.append("Mean Sea lvel pressure");varunits.append("Pa")
+varnames_out.append("Precip");vartypes.append("TLL");varlong.append("Total Precipitation accumulatd for 6 hours");varunits.append("kg/m^2")
+varnames_out.append("TCC");vartypes.append("TLL");varlong.append("Total cloud cover");varunits.append("%")
+varnames_out.append("OLR");vartypes.append("TLL");varlong.append("Outgoing longwave ratiation at the top of the atmosphere");varunits.append("W/m^2")
+varnames_out.append("Taux");vartypes.append("TLL");varlong.append("Zonal wind stress at the surface");varunits.append("N/m^2")
+varnames_out.append("Tauy");vartypes.append("TLL");varlong.append("Meridional wind stress at the surface");varunits.append("N/m^2")
+varnames_out.append("SWHF");vartypes.append("TLL");varlong.append("Shortwave (solar) heat flux at the sea surface; positive downward");varunits.append("W/m^2")
+varnames_out.append("LWHF");vartypes.append("TLL");varlong.append("Longwave heat flux at the sea surface; positive downward");varunits.append("W/m^2")
+varnames_out.append("SNHF");vartypes.append("TLL");varlong.append("Sensible heat flux at the sea surface; positive downward");varunits.append("W/m^2")
+varnames_out.append("LAHF");vartypes.append("TLL");varlong.append("Latent heat flux at the sea surfac; positive downwarde");varunits.append("W/m^2")
 nvar=len(varnames_out)
+lev_out=[100000,92500,85000,70000,50000,30000,20000,10000,5000,1000]
 
 lon_out=np.arange(0,360,1.0)
 lat_out=np.arange(-90,90.25,1.0)
@@ -52,12 +51,15 @@ missing=-9.99e7
 ref_dt=dt.datetime(1950,1,1,0,0,0); time_units="Days since "+str(ref_dt)+" utc"
 lead_times=[5,5,5,5,18,5,5,5,5,5,18,5]
 
+
 lonname="longitude"
 latname="latitude"
 timename="juld"
+levname="pressure_level"
 
 for iexp in range(0,len(exp_names)):
   fflag_tail="_"+system_name+"_"+exp_names[iexp]+".nc"
+
   for iy in range(start_year,end_year+1):
     if (iy==start_year):
         im1=start_month
@@ -110,8 +112,17 @@ for iexp in range(0,len(exp_names)):
             nc_out["lead_time"][:]=lead_time_out[:]
             nc_out["lead_time"].long_name="Lead time indices of the valid week and the first and last days of the week"
 
-            nc_out.createVariable(varnames_out[ivar],"float32",[timename,latname,lonname])
-            var_out=np.ones((len(time_out),len(lat_out),len(lon_out)))*missing
+            if (vartypes[ivar]=="TLLL"):
+              nc_out.createDimension(levname,len(lev_out))
+              nc_out.createVariable(levname,"float32",[levname])
+              nc_out[levname][:]=lev_out
+              nc_out[levname].units="Pa"
+              nc_out.createVariable(varnames_out[ivar],"float32",[timename,levname,latname,lonname])
+              var_out=np.ones((len(time_out),len(lev_out),len(lat_out),len(lon_out)))*missing
+            else:
+              nc_out.createVariable(varnames_out[ivar],"float32",[timename,latname,lonname])
+              var_out=np.ones((len(time_out),len(lat_out),len(lon_out)))*missing
+            
             nc_out.variables[varnames_out[ivar]].units=varunits[ivar]
             nc_out.variables[varnames_out[ivar]].long_name=varlong[ivar]
             nc_out.variables[varnames_out[ivar]].missing_value=missing

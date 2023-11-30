@@ -4,7 +4,7 @@ import datetime as dt
 import numpy as np
 import os
 
-dir_work="../../../S2S-FC"
+dir_work="../../S2S-FC"
 start_year=2003;start_month=2
 end_year=2004;end_month=1
 #end_year=2023;end_month=1
@@ -19,7 +19,7 @@ version_name="0"
 dt_now=dt.datetime.now(dt.timezone.utc)
 creation_date=dt_now.strftime('%Y-%m-%d %H:%M:%S utc')
 project_name="SynObs Flagship OSE"
-group_name="S2SF-G1DA"
+group_name="S2SF-DA"
 time_interp="daily average fields"
 interval=1
 
