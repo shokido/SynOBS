@@ -4,7 +4,7 @@ import datetime as dt
 import numpy as np
 import os
 
-dir_work="../../../OP-FC"
+dir_work="../../OP-FC"
 dt_ini_start=dt.datetime(2020,1,6,0,0,0)# Start date of prediction
 dt_ini_end=dt.datetime(2020,1,31,0,0,0)  # End date of prediction
 #dt_ini_end=dt.datetime(2021,1,1,0,0,0)  # End date of prediction

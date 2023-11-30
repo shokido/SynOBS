@@ -1,10 +1,10 @@
-# A Python script for generating template netCDF file for OP-G2H
+# A Python script for generating template netCDF file for OPG1
 import netCDF4 as ncdf
 import datetime as dt
 import numpy as np
 import os
 
-dir_work="../../../OP-AN"
+dir_work="../../OP-AN"
 dt_start=dt.datetime(2020,1,1,0,0,0) # Start date of output
 dt_end=dt.datetime(2020,1,31,0,0,0)  # End date of output (for an initial test...terminate at 31/1/2020)
 #dt_end=dt.datetime(2020,12,31,0,0,0)  # End date of output
@@ -18,7 +18,7 @@ version_name="0"
 dt_now=dt.datetime.now(dt.timezone.utc)
 creation_date=dt_now.strftime('%Y-%m-%d %H:%M:%S utc')
 project_name="SynObs Flagship OSE"
-group_name="OP-G2H"
+group_name="OP-G2"
 time_interp="daily average fields"
 nskip=1
 ncycle=int(((dt_end-dt_start).days+1)/nskip)
@@ -36,8 +36,10 @@ varnames_out.append("MLD005");vartypes.append("TLL");varlong.append("Mixed Layer
 varnames_out.append("15mU");vartypes.append("TLL");varlong.append("Zonal Velocity at 15m depth");varunits.append("m/s")
 varnames_out.append("15mV");vartypes.append("TLL");varlong.append("Meridional velocity at 15m depth");varunits.append("m/s")
 nvar=len(varnames_out)
-lon_out=np.arange(0,360,0.1)
-lat_out=np.arange(-90,90.1,0.1)
+
+lon_out=np.arange(0,360,0.25)
+lat_out=np.arange(-90,90.25,0.25)
+#nfile=len(fnames_in)
 missing=-9.99e7
 ref_dt=dt.datetime(1950,1,1,0,0,0); time_units="Days since "+str(ref_dt)+" utc"
 
@@ -59,6 +61,7 @@ for iexp in range(0,len(exp_names)):
             fname_out=dir_name+"/"+group_name+"_"+varnames_out[ivar] \
               +"_"+str(yyyymm*100+dt_1.day)+fflag_tail
 
+            # Create netCDF file
             nc_out=ncdf.Dataset(fname_out,"w")
             nc_out.createDimension(lonname,len(lon_out))
             nc_out.createDimension(latname,len(lat_out))

@@ -5,7 +5,7 @@ import numpy as np
 import os
 from diag_libs import *
 
-dir_work="../../../OP-FC"
+dir_work="../../OP-FC"
 dt_ini_start=dt.datetime(2020,1,6,0,0,0)# Start date of prediction
 dt_ini_end=dt.datetime(2020,1,31,0,0,0)  # End date of prediction
 #dt_ini_end=dt.datetime(2021,1,1,0,0,0)  # End date of prediction
@@ -13,17 +13,17 @@ institution_name="JAMSTEC"
 contact_name="skido@jamstec.go.jp"
 system_name="OBSDATA" # Name of your system
 version_name="0"
-dir_argo="../../../Argo_Info/" # Path to files with "ArRefYYYYMM"
+dir_argo="../../Argo_Info/" # Path to files with "ArRefYYYYMM"
 
 # You don't need to edit following part
 dt_now=dt.datetime.now(dt.timezone.utc)
 creation_date=dt_now.strftime('%Y-%m-%d %H:%M:%S utc')
 project_name="SynObs Flagship OSE"
 group_name="OPF-PL"
-plat_name="Assimilated Argo"
-plat_short="ArAsm"
+plat_name="Reference Argo"
+plat_short="ArRef"
 time_interp="daily average value"
-obs_num_start=0
+obs_num_start=50000
 
 dts_ini=[]
 ndays=int((dt_ini_end-dt_ini_start).days/5)+1

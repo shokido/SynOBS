@@ -4,13 +4,13 @@ import datetime as dt
 import numpy as np
 import os
 from diag_libs import *
-dir_work="../../../OP-AN"
+dir_work="../../OP-AN"
 dt_start=dt.datetime(2020,1,1,0,0,0) # Start date of output
 dt_end=dt.datetime(2022,12,31,0,0,0)  # End date of output
 contact_name="skido@jamstec.go.jp"
 system_name="OBSDATA"
 version_name="0"
-dir_argo="../../../Argo_Info/" # Path to files with "ArAsmYYYYMM"
+dir_argo="../../Argo_Info/" # Path to files with "ArAsmYYYYMM"
 
 # You don't need to edit following part
 dt_now=dt.datetime.now(dt.timezone.utc)
