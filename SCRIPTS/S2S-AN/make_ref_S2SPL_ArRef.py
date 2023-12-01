@@ -5,7 +5,7 @@ import numpy as np
 import os
 from diag_libs import *
 
-dir_work="../../../S2S-AN"
+dir_work="../../S2S-AN"
 dt_start=dt.datetime(2003,1,1,0,0,0) # Start date of output
 dt_end=dt.datetime(2003,1,31,0,0,0)  # End date of output (for an initial test...terminate at 31/1/2003)
 #dt_end=dt.datetime(2022,12,31,0,0,0)  # End date of output
@@ -13,7 +13,7 @@ institution_name="JMA/MRI"
 contact_name="yfujii@mri-jma.go.jp"
 system_name="OBSDATA" # Name of your system
 version_name="0"
-dir_argo="../../../Argo_Info/" # Path to files with "ArRefYYYYMM"
+dir_argo="../../Argo_Info/" # Path to files with "ArRefYYYYMM"
 
 # You don't need to edit following part
 dt_now=dt.datetime.now(dt.timezone.utc)
