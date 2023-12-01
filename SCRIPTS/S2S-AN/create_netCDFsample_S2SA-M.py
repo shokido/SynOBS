@@ -84,11 +84,13 @@ for iexp in range(0,len(exp_names)):
                 nc_out=ncdf.Dataset(fname_out,"w")
                 nc_out.createDimension(lonname,len(lon_out))
                 nc_out.createDimension(latname,len(lat_out))
-                nc_out.createDimension(levname,len(lev_out))
+                if (vartypes[ivar]=="TLLL"):
+                    nc_out.createDimension(levname,len(lev_out))
                 nc_out.createDimension(timename,len(time_out))
                 nc_out.createVariable(lonname,"float32",[lonname])
                 nc_out.createVariable(latname,"float32",[latname])
-                nc_out.createVariable(levname,"float32",[levname])
+                if (vartypes[ivar]=="TLLL"):
+                    nc_out.createVariable(levname,"float32",[levname])
                 nc_out.createVariable(timename,"double",[timename])
                 nc_out[lonname][:]=lon_out[:]
                 nc_out[lonname].long_name="Longitude"
@@ -96,14 +98,19 @@ for iexp in range(0,len(exp_names)):
                 nc_out[latname][:]=lat_out[:]
                 nc_out[latname].long_name="Latitude"
                 nc_out[latname].units="degrees_north"
-                nc_out[levname][:]=lev_out[:]
+                if (vartypes[ivar]=="TLLL"):
+                    nc_out[levname][:]=lev_out[:]
                 nc_out[levname].long_name="Depths"
                 nc_out[levname].units="m"
                 nc_out[timename][:]=time_out[:]
                 nc_out[timename].long_name="Initial time of the valid month"
                 nc_out[timename].units=time_units
-                nc_out.createVariable(varnames_out[ivar],"float32",[timename,levname,latname,lonname])
-                var_out=np.ones((len(time_out),len(lev_out),len(lat_out),len(lon_out)))*missing
+                if (vartypes[ivar]=="TLLL"):
+                    nc_out.createVariable(varnames_out[ivar],"float32",[timename,levname,latname,lonname])
+                    var_out=np.ones((len(time_out),len(lev_out),len(lat_out),len(lon_out)))*missing
+                else:
+                    nc_out.createVariable(varnames_out[ivar],"float32",[timename,latname,lonname])
+                    var_out=np.ones((len(time_out),len(lat_out),len(lon_out)))*missing
                 nc_out.variables[varnames_out[ivar]].units=varunits[ivar]
                 nc_out.variables[varnames_out[ivar]].long_name=varlong[ivar]
                 nc_out.variables[varnames_out[ivar]].missing_value=missing
