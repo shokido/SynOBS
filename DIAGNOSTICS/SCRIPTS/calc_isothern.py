@@ -13,7 +13,7 @@ for i in range(0,len(z_list)):
 for ifile in range(0,len(fnames_temp)):
     ds_temp=xr.open_dataset(fnames_temp[ifile])
     da_isoth= xr.apply_ufunc(
-    find_exceed_depth, 
+    find_isothern, 
     ds_temp[varname_temp], # temperature
     ds_temp[varname_lev], # depth
     input_core_dims=[['lev'], ['lev']],
