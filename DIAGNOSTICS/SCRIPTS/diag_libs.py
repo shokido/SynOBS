@@ -453,7 +453,7 @@ def find_tchp(temp,salt, depths):
     thres_temp=26.0
     # Find index where temperature crosses the isotherm
     # Note: depths should be increasing with index
-    if (vars[0]<thres_temp):
+    if (temp[0]<thres_temp):
         return np.nan
 
     idx = np.where(np.diff(np.sign(temp - thres_temp)))[0]
@@ -471,7 +471,7 @@ def find_tchp(temp,salt, depths):
       dens=sw_dens(salt,temp,0)
       CP=3.985*10e4
       dz=1
-      tchp=cal_vint(depths,dens*CP*(temp-thres_temp),0,var_depth,dz)
+      tchp=cal_vint(depths,dens*CP*(temp-thres_temp),0,var_depth)
       return tchp
     else:
       return(np.nan)
