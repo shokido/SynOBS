@@ -385,7 +385,16 @@ def cal_vint(Xp,Yp,x1,x2):
     x_vals=np.asarray([Xp_valid[i] for i in x_ind])
     x_ref=np.append(x_ref,x_vals)
   x_ref=np.append(x_ref,x2)
-  y_ref=pcws_lagr1_multi(Xp_valid,Yp_valid,x_ref)
+  if ( len(Xp_valid) > 1 ):
+    y_ref=pcws_lagr1_multi(Xp_valid,Yp_valid,x_ref)
+    dx_ref=np.diff(x_ref)
+    dy_ref=np.diff(y_ref)+2*y_ref[0:len(y_ref)-1]
+    res=np.sum(dx_ref*dy_ref)*0.5
+  elif ( len(Xp_valid) == 1 ):
+    res=Yp_valid[0]*(x2-x1)
+  else:
+    res=np.nan
+  #y_ref=pcws_lagr1_multi(Xp_valid,Yp_valid,x_ref)
   dx_ref=np.diff(x_ref)
   dy_ref=np.diff(y_ref)+2*y_ref[0:len(y_ref)-1]
   res=np.sum(dx_ref*dy_ref)*0.5
