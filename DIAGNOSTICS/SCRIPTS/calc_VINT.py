@@ -27,7 +27,7 @@ for ifile in range(0,len(fnames_in)):
     ds_in[varname_lev], # depth
     ds_in[varnames_in[ifile]], # inocity
     input_core_dims=[['lev'], ['lev']],
-    kwargs={'x1': vint_1[ifile],'x2':vint_2[ifile]},
+    kwargs={'x1': vint_1[ifile],'x2':vint_2[ifile],'ext_left':True,'ext_right':False},
     vectorize=True,  # Vectorize function over remaining 'x' and 'y' dimensions
     output_dtypes=[float],)
     da_var=da_var/(vint_2[ifile]-vint_1[ifile])

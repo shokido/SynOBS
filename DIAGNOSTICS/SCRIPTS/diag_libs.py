@@ -377,29 +377,45 @@ def get_valid(x,y):
     x_valid=np.copy(x[ind_valid])
     y_valid=np.copy(y[ind_valid])
     return(x_valid,y_valid)
-def cal_vint(Xp,Yp,x1,x2):
-  Xp_valid,Yp_valid=get_valid(Xp,Yp) # Remove nan values
-  x_ref=np.asarray((x1))
-  x_ind=np.where((Xp_valid> x1) & (Xp_valid < x2))[0]
+
+def cal_vint(Xp,Yp,x1,x2,ext_left=True,ext_right=False):
+  if Xp[1] < Xp[0]:
+    Xp = np.flip(Xp)
+    Yp = np.flip(Yp)
+  Xp_valid,Yp_valid=get_valid(Xp,Yp) # Remove nan values  
+  if (len(Xp_valid)==0):
+     return(np.nan)  
+  xmin=Xp_valid[0];xmax=Xp_valid[-1] # Assume it is in ascending order
+  if (x1 < xmin and ext_left==False):
+     return(np.nan)
+  else:
+     x1_e=x1
+  if (x2 > xmax and ext_right==False):
+     return(np.nan)
+  else:
+     x2_e=x2
+  # Obtain y1_e
+  x_ref=np.asarray((x1_e))
+  if (len(Xp_valid)==1):
+     y1_e=Yp_valid[0]
+  else:
+     y1_e=pcws_lagr1(Xp_valid,Yp_valid,x1_e)
+  y_ref=np.asarray((y1_e))
+  x_ind=np.where((Xp_valid> x1_e) & (Xp_valid < x2_e))[0]
   if (len(x_ind)>0):
     x_vals=np.asarray([Xp_valid[i] for i in x_ind])
+    y_vals=np.asarray([Yp_valid[i] for i in x_ind])
     x_ref=np.append(x_ref,x_vals)
-  x_ref=np.append(x_ref,x2)
-  if ( len(Xp_valid) > 1 ):
-    y_ref=pcws_lagr1_multi(Xp_valid,Yp_valid,x_ref)
-    dx_ref=np.diff(x_ref)
-    dy_ref=np.diff(y_ref)+2*y_ref[0:len(y_ref)-1]
-    res=np.sum(dx_ref*dy_ref)*0.5
-  elif ( len(Xp_valid) == 1 ):
-    res=Yp_valid[0]*(x2-x1)
-  else:
-    res=np.nan
-  #y_ref=pcws_lagr1_multi(Xp_valid,Yp_valid,x_ref)
-  dx_ref=np.diff(x_ref)
-  dy_ref=np.diff(y_ref)+2*y_ref[0:len(y_ref)-1]
-  res=np.sum(dx_ref*dy_ref)*0.5
-  return(res)
+    y_ref=np.append(y_ref,y_vals)
 
+  x_ref=np.append(x_ref,x2_e)
+  if (len(Xp_valid)==1):
+     y2_e=Yp_valid[0]
+  else:
+     y2_e=pcws_lagr1(Xp_valid,Yp_valid,x2_e)
+  y_ref=np.append(y_ref,y2_e)
+  res=np.trapz(y_ref,x_ref)
+  return(res)
 def find_isothern(vars, depths, thres_var):
     # Find index where temperature crosses the isotherm
     # Note: depths should be increasing with index
