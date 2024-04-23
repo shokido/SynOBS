@@ -15,7 +15,7 @@ vint_1.append(0);vint_2.append(300);varnames_out.append("0-300mT")
 varunits_out.append("degrees_celsius")
 fnames_out.append("0-300mT_20200101_GLOBAL_360x180.nc")
 varnames_in.append("S");fnames_in.append("../TestFile/S_20200101_GLOBAL_360x180.nc")
-vint_1.append(0);vint_2.append(300);varnames_out.append("0-50mS")
+vint_1.append(0);vint_2.append(300);varnames_out.append("0-300mS")
 varunits_out.append("PSU")
 fnames_out.append("0-300mS_20200101_GLOBAL_360x180.nc")
 
