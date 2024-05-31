@@ -6,8 +6,8 @@ import os
 
 dir_work="../../OP-AN"
 dt_start=dt.datetime(2020,1,1,0,0,0) # Start date of output
-dt_end=dt.datetime(2020,1,31,0,0,0)  # End date of output (for an initial test...terminate at 31/1/2020)
-#dt_end=dt.datetime(2020,12,31,0,0,0)  # End date of output
+dt_end=dt.datetime(2020,12,31,0,0,0)  # End date of output
+y_not_leap=2021
 institution_name="JAMSTEC"
 contact_name="skido@jamstec.go.jp"
 system_name="SAMPLE" # Name of your system
@@ -22,7 +22,20 @@ group_name="OPA-P"
 time_interp="pentad average fields"
 
 nskip=5
-ncycle=int(((dt_end-dt_start).days+1)/nskip)
+dt_tmp=dt_start
+ncycle=0
+dtp=[dt_tmp]
+while dt_tmp < dt_end :
+    year_tmp=dt_tmp.year
+    dt_nl=dt_tmp.replace(year=y_not_leap)
+    year_nl=dt_nl.year
+    dt_nlp=dt_nl+dt.timedelta(days=nskip)
+    year_nlp=dt_nlp.year
+    year_tmp=year_tmp+year_nlp-year_nl
+    dt_tmp=dt_nlp.replace(year=year_tmp)
+    dtp.append(dt_tmp)
+    ncycle=ncycle+1
+#
 varnames_out=[];vartypes=[];varunits=[];varlong=[]
 varnames_out.append("SSH");vartypes.append("TLL");varlong.append("Sea surface height");varunits.append("m")
 varnames_out.append("SIC");vartypes.append("TLL");varlong.append("Sea Ice Concentration Ratio");varunits.append("")
@@ -59,8 +72,8 @@ timename="juld"
 for iexp in range(0,len(exp_names)):
     fflag_tail="_"+system_name+"_"+exp_names[iexp]+".nc"
     for icycle in range(0,ncycle):
-        dt_1=dt_start+dt.timedelta(days=icycle*nskip)
-        dt_2=dt_start+dt.timedelta(days=(icycle+1)*nskip-1)
+        dt_1=dtp[icycle]
+        dt_2=dtp[icycle+1]-dt.timedelta(days=1)
         time_out=np.asarray([(dt_1-ref_dt).days])
         print(dt_1,dt_2)
         for ivar in range(0,nvar):

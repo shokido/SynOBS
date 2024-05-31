@@ -6,8 +6,8 @@ import os
 
 dir_work="../../OP-FC"
 dt_ini_start=dt.datetime(2020,1,6,0,0,0)# Start date of prediction
-dt_ini_end=dt.datetime(2020,1,31,0,0,0)  # End date of prediction
-#dt_ini_end=dt.datetime(2021,1,1,0,0,0)  # End date of prediction
+dt_ini_end=dt.datetime(2021,1,1,0,0,0)  # End date of prediction
+y_not_leap=2021
 institution_name="JAMSTEC"
 contact_name="skido@jamstec.go.jp"
 system_name="SAMPLE" # Name of your system
@@ -21,10 +21,18 @@ project_name="SynObs Flagship OSE"
 group_name="OPF-P"
 time_interp="pentad average fields"
 
-dts_ini=[]
-ndays=int((dt_ini_end-dt_ini_start).days/5)+1
-for i in range(0,ndays):
-    dts_ini.append(dt_ini_start+dt.timedelta(days=i*5))
+nskip=5
+dt_tmp=dt_ini_start
+dts_ini=[dt_tmp]
+while dt_tmp < dt_ini_end :
+    year_tmp=dt_tmp.year
+    dt_nl=dt_tmp.replace(year=y_not_leap)
+    year_nl=dt_nl.year
+    dt_nlp=dt_nl+dt.timedelta(days=nskip)
+    year_nlp=dt_nlp.year
+    year_tmp=year_tmp+year_nlp-year_nl
+    dt_tmp=dt_nlp.replace(year=year_tmp)
+    dts_ini.append(dt_tmp)
 num_ini=len(dts_ini)
 varnames_out=[];vartypes=[];varunits=[];varlong=[]
 varnames_out.append("SSH");vartypes.append("TLL");varlong.append("Sea surface height");varunits.append("m")
@@ -58,13 +66,24 @@ timename="juld"
 for iexp in range(0,len(exp_names)):
     fflag_tail="_"+system_name+"_"+exp_names[iexp]+".nc"
     for inum in range(0,num_ini):
+        nskip=5
+        num_fcst=2
         dt_start=dts_ini[inum]
         initial_time=dt_start.strftime('%Y-%m-%d %H:%M:%S utc')
-        dt_end=dt_start+dt.timedelta(days=10)
-        nskip=5
-        num_fcst=int(((dt_end-dt_start).days+1)/nskip)
+        dt_tmp=dt_start
+        dts_pred=[dt_tmp]
+        for icycle in range(0,num_fcst-1):
+            year_tmp=dt_tmp.year
+            dt_nl=dt_tmp.replace(year=y_not_leap)
+            year_nl=dt_nl.year
+            dt_nlp=dt_nl+dt.timedelta(days=nskip)
+            year_nlp=dt_nlp.year
+            year_tmp=year_tmp+year_nlp-year_nl
+            dt_tmp=dt_nlp.replace(year=year_tmp)
+            dts_pred.append(dt_tmp)
+            
         for icycle in range(0,num_fcst):
-            dt_pred=dt_start+dt.timedelta(days=icycle*nskip)
+            dt_pred=dts_pred[icycle]
             time_vstar=(dt_pred-ref_dt).days+(dt_pred-ref_dt).seconds/(60*60*24)
             time_out=np.asarray([time_vstar])
             leadtime_str='D'+'{:0>2d}'.format(icycle*nskip+1)
