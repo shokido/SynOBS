@@ -494,8 +494,7 @@ def find_tchp(temp,salt, depths):
     var_depth = y1 + (y2 - y1) * (thres_temp - x1) / (x2 - x1)
     if (np.isnan(var_depth)==False):
       dens=sw_dens(salt,temp,0)
-      CP=3.985*10e4
-      dz=1
+      CP=3.985e3
       tchp=cal_vint(depths,dens*CP*(temp-thres_temp),0,var_depth)
       return tchp
     else:
