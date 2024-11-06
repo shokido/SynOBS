@@ -42,6 +42,14 @@ varnames_out.append("Z17");vartypes.append("TLL");varlong.append("Depth of the 1
 varnames_out.append("Z26");vartypes.append("TLL");varlong.append("Depth of the 26 degree isotherm estimated from T.");varunits.append("m")
 varnames_out.append("Z28");vartypes.append("TLL");varlong.append("Depth of the 28 degree isotherm estimated from T.");varunits.append("m")
 
+#extended variables
+varnames_out.append("Taux");vartypes.append("TLL");varlong.append("Zonal wind stress at the surface");varunits.append("N/m^2")
+varnames_out.append("Tauy");vartypes.append("TLL");varlong.append("Meridional wind stress at the surface");varunits.append("N/m^2")
+varnames_out.append("LWHF");vartypes.append("TLL");varlong.append("Longwave heat flux at the sea surface; positive downward");varunits.append("W/m^2")
+varnames_out.append("SNHF");vartypes.append("TLL");varlong.append("Sensible heat flux at the sea surface; positive downward");varunits.append("W/m^2")
+varnames_out.append("LAHF");vartypes.append("TLL");varlong.append("Latent heat flux at the sea surfac; positive downwarde");varunits.append("W/m^2")
+varnames_out.append("NetWF");vartypes.append("TLL");varlong.append("Net heat flux at the sea surface; positive downward");varunits.append("m/s")
+
 nvar=len(varnames_out)
 
 lon_out=np.arange(0,360,1.0)
